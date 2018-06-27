@@ -64,19 +64,19 @@ def build_vocab(data: Iterable[str], num_words: Optional[int] = None, min_count:
                         if token not in vocab_symbols_set)
     # For words with the same count, they will be ordered reverse alphabetically.
     # Not an issue since we only care for consistency
-    vocab = (w for c, w in sorted(((c, w) for w, c in raw_vocab.items() if c >= min_count), reverse=True))
+    pruned_vocab = [w for c, w in sorted(((c, w) for w, c in raw_vocab.items() if c >= min_count), reverse=True)]
 
     if num_words is not None:
-        vocab = list(islice(vocab, num_words))
+        vocab = list(islice(pruned_vocab, num_words))
         num_words_log = str(num_words)
     else:
-        vocab = list(vocab)
+        vocab = pruned_vocab
         num_words_log = "None"
 
     word_to_id = {word: idx for idx, word in enumerate(chain(C.VOCAB_SYMBOLS, vocab))}
     logger.info("Vocabulary: types: %d/%d/%d/%d (initial/min_pruned/max_pruned/+special) " +
                 "[min_frequency=%d, max_num_types=%s]",
-                len(raw_vocab), len(vocab), len(word_to_id) - len(C.VOCAB_SYMBOLS),
+                len(raw_vocab), len(pruned_vocab), len(word_to_id) - len(C.VOCAB_SYMBOLS),
                 len(word_to_id), min_count, num_words_log)
 
     # Important: pad symbol becomes index 0
